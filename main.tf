@@ -13,8 +13,8 @@ resource "aws_efs_mount_target" "efs_primary" {
     security_groups = ["sg-0f5e164fbcc887780"]
 }
 
-
 resource "aws_efs_replication_configuration" "replication_secondary" {
+    count = local.replication_enabled ? 1 : 0 
     source_file_system_id = aws_efs_file_system.efs_primary.id
     destination {
       region = "us-west-2"
@@ -22,9 +22,10 @@ resource "aws_efs_replication_configuration" "replication_secondary" {
 }
 
 resource "aws_efs_mount_target" "replicated_file_system_arn" {
+  count = local.replication_enabled ? 1 : 0 
   provider = aws.west
-  depends_on = [aws_efs_replication_configuration.replication_secondary]
-  file_system_id = aws_efs_replication_configuration.repl ication_secondary.destination[0].file_system_id
+  # depends_on = [aws_efs_replication_configuration.replication_secondary]
+  file_system_id = aws_efs_replication_configuration.replication_secondary[count.index].destination[0].file_system_id
   subnet_id = "subnet-0de9aa7adb8a84bea"
 
 }
